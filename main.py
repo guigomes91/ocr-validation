@@ -3,7 +3,7 @@ import numpy as np
 import os
 import pytesseract
 
-THRESHOULD_MIN_BRIGHTNESS = 50
+THRESHOULD_MIN_BRIGHTNESS = 80
 
 THRESHOULD_MAX_BRIGHTNESS = 200
 
@@ -14,6 +14,10 @@ def get_image_path(document_filename):
     """Get the full path of the image file."""
     current_dir = os.path.dirname(__file__)
     return os.path.join(current_dir, document_filename)
+
+
+def is_empty_or_null(self):
+    return not self or self.strip() == ''
 
 
 class DocumentImageProcessor:
@@ -42,10 +46,11 @@ class DocumentImageProcessor:
 
         # Check if the image is too bright or too dark
         brightness = np.mean(gray_image)
+        print("Brightness >> " + str(brightness))
         if brightness > THRESHOULD_MAX_BRIGHTNESS:
             print("Image is too bright.")
             return False
-        elif brightness < THRESHOULD_MIN_BRIGHTNESS:
+        elif brightness <= THRESHOULD_MIN_BRIGHTNESS:
             print("Image is too dark.")
             return False
 
@@ -58,10 +63,16 @@ class DocumentImageProcessor:
             return False
 
         # Check if the image has any characters
-        edges = cv2.Canny(gray_image, 100, THRESHOULD_MAX_BRIGHTNESS)
-        print(edges)
+        edges = cv2.Canny(gray_image, 110, THRESHOULD_MAX_BRIGHTNESS)
         if np.sum(edges) == 0:
             print("No characters detected in the image.")
+            return False
+
+        text = self.read_characters()
+        print("Extracted Text:\n")
+        print(text)
+
+        if is_empty_or_null(text) and THRESHOULD_MIN_BRIGHTNESS >= brightness > THRESHOULD_MAX_BRIGHTNESS:
             return False
 
         return True
@@ -79,7 +90,6 @@ class DocumentImageProcessor:
 
         # Find the number of non-zero bins in the histogram
         non_zero_bins = np.count_nonzero(hist)
-        print(non_zero_bins)
 
         # If there are only 1 or 2 non-zero bins, the image is binary or bilevel
         return non_zero_bins <= 2
@@ -90,7 +100,7 @@ class DocumentImageProcessor:
             return ""
 
         gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        text = pytesseract.image_to_string(gray_image, lang='por')  # Assuming the document is in Portuguese
+        text = pytesseract.image_to_string(gray_image, lang='por')
         return text
 
 
@@ -103,9 +113,6 @@ if __name__ == "__main__":
 
     if processor.check_image_quality():
         print("Image quality is acceptable.")
-        text = processor.read_characters()
-        print("Extracted Text:")
-        print(text)
 
     else:
         print("Image quality is not acceptable.")
