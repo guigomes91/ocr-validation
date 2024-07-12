@@ -46,30 +46,29 @@ class DocumentImageProcessor:
 
         # Check if the image is too bright or too dark
         brightness = np.mean(gray_image)
-        print("Brightness >> " + str(brightness))
         if brightness > THRESHOULD_MAX_BRIGHTNESS:
-            print("Image is too bright.")
+            print("Imagem é muito clara.")
             return False
         elif brightness <= THRESHOULD_MIN_BRIGHTNESS:
-            print("Image is too dark.")
+            print("Imagem é muito escura.")
             return False
 
         # Check if the image is almost completely white or black
         if np.all(gray_image == 255):
-            print("Image is completely white.")
+            print("Imagem é completamente branca.")
             return False
         elif np.all(gray_image == 0):
-            print("Image is completely black.")
+            print("Imagem é completamente preta.")
             return False
 
         # Check if the image has any characters
         edges = cv2.Canny(gray_image, 110, THRESHOULD_MAX_BRIGHTNESS)
         if np.sum(edges) == 0:
-            print("No characters detected in the image.")
+            print("Caracteres não detectaveis na imagem.")
             return False
 
         text = self.read_characters()
-        print("Extracted Text:\n")
+        print("Texto extraído:\n")
         print(text)
 
         if is_empty_or_null(text) and THRESHOULD_MIN_BRIGHTNESS >= brightness > THRESHOULD_MAX_BRIGHTNESS:
@@ -105,14 +104,14 @@ class DocumentImageProcessor:
 
 
 if __name__ == "__main__":
-    image_filename = "C:/dev/git/backend/python/ocr-validation/img/1.jpg"
+    image_filename = "C:/dev/git/backend/python/ocr-validation/img/2.jpeg"
     processor = DocumentImageProcessor(image_filename)
 
     if processor.is_binary_or_bilevel():
-        print("The image has only one or two color tones.")
+        print("A imagem tem apenas um ou dois tons de cores.")
 
     if processor.check_image_quality():
-        print("Image quality is acceptable.")
+        print("Qualidade da imagem aceitável.")
 
     else:
-        print("Image quality is not acceptable.")
+        print("Qualidade da imagem não aceitável.")
